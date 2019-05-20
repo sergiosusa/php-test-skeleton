@@ -2,7 +2,7 @@
 
 Empty php skeleton ready to use to start any test.
 
-This is part of the episode #2: "¿Cómo pasar las pruebas técnicas?" of my podcast ["¿Qué me estás container?"](https://open.spotify.com/show/1FBSbmyYqo9AYbFehaoIWu?si=IIgpjIByTqGp7yfuUhqUAA).
+This is part of the episode #2: "¿Cómo pasar las pruebas técnicas?" of my podcast ["¿Qué me estás container?"](https://open.spotify.com/show/1FBSbmyYqo9AYbFehaoIWu).
 
 ## Prerequisites
 

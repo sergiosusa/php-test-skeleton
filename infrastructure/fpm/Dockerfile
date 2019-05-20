@@ -1,23 +1,45 @@
-FROM ubuntu:latest
+ARG ALPINE_VERSION="3.8"
+ARG COMPOSER_VERSION="1.8.5"
 
-ENV DEBIAN_FRONTEND noninteractive
+FROM composer:${COMPOSER_VERSION} AS composer
 
-RUN \
-    apt-get update && \
-    apt-get install -y software-properties-common && \
-    LC_ALL=C.UTF-8 add-apt-repository -y -u ppa:ondrej/php && \
-    apt-get update && \
-    apt-get install -y curl php7.2-cli php7.2-fpm php7.2-common php7.2-curl php7.2-gd php7.2-mysql php7.2-sqlite3 php7.2-soap php7.2-xml php7.2-zip php7.2-gettext php7.2-mbstring php7.2-intl php7.2-imap imagemagick php-imagick php-xdebug graphicsmagick git && \
-    apt-get autoremove -y
+FROM alpine:${ALPINE_VERSION}
+ARG ALPINE_VERSION
+ARG PHP_VERSION="7.2"
 
-RUN rm /etc/php/7.2/cli/conf.d/20-xdebug.ini
-COPY xdebug.ini /etc/php/7.2/mods-available/xdebug.ini
+# Install system dependencies
+RUN true \
+ && apk add --no-cache \
+        ca-certificates \
+        tini \
+;
 
-RUN ln -s /etc/php/7.2/mods-available/xdebug.ini /etc/php/7.2/cli/conf.d/20-xdebug.ini
+# Install PHP
+ADD https://dl.bintray.com/php-alpine/key/php-alpine.rsa.pub /etc/apk/keys/php-alpine.rsa.pub
+RUN true \
+ && echo "@php https://dl.bintray.com/php-alpine/v${ALPINE_VERSION}/php-${PHP_VERSION}" >> /etc/apk/repositories \
+ && apk add --no-cache \
+        php7-cli@php \
+        php7-curl@php \
+        php7-json@php \
+        php7-mbstring@php \
+        php7-opcache@php \
+        php7-openssl@php \
+        php7-phar@php \
+        php7-zip@php \
+        php7-fpm@php \
+        php7-dom@php \
+;
 
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+# Install Composer
+COPY --from=composer /usr/bin/composer /usr/bin/composer
+RUN true \
+ && composer global require --quiet \
+        hirak/prestissimo \
+ && composer clear-cache --quiet \
+;
 
 RUN mkdir -p /run/php
 
 EXPOSE 9000
-ENTRYPOINT /usr/sbin/php-fpm7.2 --nodaemonize
+ENTRYPOINT /usr/sbin/php-fpm7 --nodaemonize
